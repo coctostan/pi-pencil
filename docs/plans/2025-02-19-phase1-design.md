@@ -110,31 +110,15 @@ Converts MCP tool definitions to pi tool registrations.
 - Tool execution: marshal pi tool call → MCP `tools/call` → return result
 - Prefix tool names with `pencil_` to namespace them (e.g. `pencil_batch_design`)
 
-**Tool name mapping:**
-```
-MCP tool name          → pi tool name
-batch_design           → pencil_batch_design
-batch_get              → pencil_batch_get
-get_screenshot         → pencil_get_screenshot
-snapshot_layout        → pencil_snapshot_layout
-get_editor_state       → pencil_get_editor_state
-open_document          → pencil_open_document
-get_guidelines         → pencil_get_guidelines
-get_style_guide_tags   → pencil_get_style_guide_tags
-get_style_guide        → pencil_get_style_guide
-get_variables          → pencil_get_variables
-set_variables          → pencil_set_variables
-find_empty_space       → pencil_find_empty_space_on_canvas
-search_all_unique_*    → pencil_search_all_unique_properties
-replace_all_matching_* → pencil_replace_all_matching_properties
-```
-
 **Tool registration pattern:**
+
+Tools keep their original MCP names — no prefix. Pencil's injected instructions reference these names directly.
+
 ```typescript
 function registerPencilTools(pi: ExtensionAPI, tools: McpTool[], client: McpClient) {
+  const toolNames: string[] = [];
   for (const tool of tools) {
-    const piToolName = `pencil_${tool.name}`;
-    pi.registerTool(piToolName, {
+    pi.registerTool(tool.name, {
       description: tool.description,
       parameters: tool.inputSchema,
       execute: async (params) => {
@@ -142,7 +126,9 @@ function registerPencilTools(pi: ExtensionAPI, tools: McpTool[], client: McpClie
         return formatResult(result);
       },
     });
+    toolNames.push(tool.name);
   }
+  return toolNames;
 }
 ```
 
@@ -153,23 +139,23 @@ Manages the `/pencil` command and active tool state.
 **Responsibilities:**
 - Register `/pencil` command
 - Track mode state (on/off)
-- On activate: add all `pencil_*` tools to active tools via `setActiveTools()`, inject system prompt, show widget
-- On deactivate: remove all `pencil_*` tools from active tools, remove system prompt, remove widget
+- On activate: connect MCP (if first time), add all Pencil tools to active tools via `setActiveTools()`, inject system prompt, show widget
+- On deactivate: remove all Pencil tools from active tools, remove system prompt, remove widget
 - Show current status when already in expected state
 
 **Mode activation flow:**
 ```
 /pencil (when off):
-  1. Check MCP connection → connect if needed
+  1. If first activation: connect MCP, discover tools, register them
   2. Get current active tools: pi.getActiveTools()
-  3. Add pencil tools: pi.setActiveTools([...current, ...pencilTools])
-  4. Inject system prompt header with Pencil instructions
+  3. Add Pencil tools: pi.setActiveTools([...current, ...pencilToolNames])
+  4. Inject system prompt header with Pencil's instructions (verbatim from MCP)
   5. Set status widget: "✏️ Pencil"
   6. Confirm: "Pencil mode active — 14 design tools loaded"
 
 /pencil (when on):
   1. Get current active tools: pi.getActiveTools()
-  2. Remove pencil tools: pi.setActiveTools(current.filter(not pencil))
+  2. Remove Pencil tools: pi.setActiveTools(current.filter(t => !pencilToolNames.includes(t)))
   3. Remove system prompt header
   4. Remove status widget
   5. Confirm: "Pencil mode deactivated"
@@ -252,17 +238,8 @@ export default async function(pi: ExtensionAPI) {
     },
   });
 
-  // Register tools eagerly (so they're ready when mode activates)
-  // but don't add them to active tools yet
-  try {
-    const connection = await mcpClient.connect();
-    if (connection.tools) {
-      registerPencilTools(pi, connection.tools, mcpClient);
-      pencilToolNames.push(...connection.tools.map(t => `pencil_${t.name}`));
-    }
-  } catch {
-    // Pencil not available — tools will be registered on first /pencil
-  }
+  // Connection is deferred — no MCP connection until first /pencil
+  // Tools are registered dynamically on first activation
 
   // Clean up on exit
   pi.on('shutdown', () => mcpClient.disconnect());
@@ -376,7 +353,7 @@ Pi extension API is provided by the pi runtime — no explicit dependency needed
 - Graceful error handling for all failure modes
 - Reconnect logic
 - Clean shutdown on pi exit
-- Deferred connection (connect on first `/pencil`, not on extension load)
+- All connection is deferred — first `/pencil` triggers connect + tool registration
 
 ### Task 7: Testing + Polish
 - Unit tests for all modules
@@ -386,12 +363,10 @@ Pi extension API is provided by the pi runtime — no explicit dependency needed
 
 ---
 
-## Open Questions
+## Design Decisions
 
-1. **Eager vs deferred connection** — Should we connect to the MCP server when the extension loads (to pre-cache tool schemas), or wait until the user types `/pencil`? Current design: attempt eager connection, fall back to deferred if Pencil isn't available.
+1. **Deferred connection** — The MCP server is NOT connected on pi startup. Connection happens on first `/pencil` command. Zero overhead when Pencil isn't being used. A 1-2 second handshake delay on first activation is acceptable — show "Connecting to Pencil..." in the widget.
 
-2. **Tool name prefix** — `pencil_batch_design` vs `batch_design`. Prefix avoids collisions but the LLM sees longer names. Pencil's own instructions reference unprefixed names. We may need to rewrite the instructions to use prefixed names, or skip the prefix entirely since tools are only active in Pencil mode.
+2. **No tool name prefix** — Tools keep their original MCP names (`batch_design`, not `pencil_batch_design`). Since tools are only in the active set during `/pencil` mode, collision risk is negligible. This lets us inject Pencil's MCP instructions verbatim without rewriting tool name references.
 
-3. **Instructions rewriting** — Pencil's injected instructions reference tool names like `batch_design`. If we prefix tools, we need to rewrite these references. Alternatively, keep original names (no prefix) since they're only active in Pencil mode and won't collide.
-
-4. **Screenshot rendering** — Phase 1 returns screenshots as base64 in tool results (same as Claude Code). Phase 2 will render them inline. Should Phase 1 do any special handling?
+3. **Screenshot: save + pass through** — `get_screenshot` results are saved to a temp file AND the base64 data is passed through to the LLM (for vision model support). Tool result display shows `📸 Screenshot saved: /tmp/pencil-screenshot-{id}.png`. Phase 2 replaces the file path message with inline TUI image rendering.

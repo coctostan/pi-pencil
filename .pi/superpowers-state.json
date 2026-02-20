@@ -27,20 +27,22 @@
     }
   },
   "tdd": {
-    "phase": "idle",
-    "testFiles": [],
+    "phase": "green",
+    "testFiles": [
+      "/Users/maxwellnewman/pi/workspace/pi-pencil/src/tool-registrar.test.ts"
+    ],
     "sourceFiles": [
-      "/Users/maxwellnewman/pi/workspace/pi-pencil/src/mcp-client.ts"
+      "/Users/maxwellnewman/pi/workspace/pi-pencil/src/tool-registrar.ts"
     ],
     "redVerificationPending": false
   },
   "debug": {
     "active": false,
-    "investigated": true,
+    "investigated": false,
     "fixAttempts": 0
   },
   "verification": {
-    "verified": false,
+    "verified": true,
     "verificationWaived": false
   }
 }

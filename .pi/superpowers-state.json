@@ -27,23 +27,20 @@
     }
   },
   "tdd": {
-    "phase": "green",
-    "testFiles": [
-      "/Users/maxwellnewman/pi/workspace/pi-pencil/src/binary-detection.test.ts"
-    ],
+    "phase": "idle",
+    "testFiles": [],
     "sourceFiles": [
-      "/Users/maxwellnewman/pi/workspace/pi-pencil/src/types.ts",
-      "/Users/maxwellnewman/pi/workspace/pi-pencil/src/binary-detection.ts"
+      "/Users/maxwellnewman/pi/workspace/pi-pencil/src/mcp-client.ts"
     ],
     "redVerificationPending": false
   },
   "debug": {
     "active": false,
-    "investigated": false,
+    "investigated": true,
     "fixAttempts": 0
   },
   "verification": {
-    "verified": true,
+    "verified": false,
     "verificationWaived": false
   }
 }

@@ -29,10 +29,10 @@
   "tdd": {
     "phase": "green",
     "testFiles": [
-      "/Users/maxwellnewman/pi/workspace/pi-pencil/src/tool-registrar.test.ts"
+      "src/mode-toggle.test.ts"
     ],
     "sourceFiles": [
-      "/Users/maxwellnewman/pi/workspace/pi-pencil/src/tool-registrar.ts"
+      "src/mode-toggle.ts"
     ],
     "redVerificationPending": false
   },

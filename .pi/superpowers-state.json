@@ -27,12 +27,10 @@
     }
   },
   "tdd": {
-    "phase": "green",
-    "testFiles": [
-      "src/mode-toggle.test.ts"
-    ],
+    "phase": "idle",
+    "testFiles": [],
     "sourceFiles": [
-      "src/mode-toggle.ts"
+      "/Users/maxwellnewman/pi/workspace/pi-pencil/src/index.ts"
     ],
     "redVerificationPending": false
   },

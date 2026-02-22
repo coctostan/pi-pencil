@@ -71,6 +71,14 @@ export class PencilMcpClient {
 
       return { tools: toolDefs, instructions: instructions ?? undefined };
     } catch (err) {
+      // Clean up partially initialized client/transport
+      try {
+        await this.client?.close();
+      } catch {
+        // Ignore cleanup errors
+      }
+      this.client = null;
+      this.transport = null;
       const message = err instanceof Error ? err.message : String(err);
       this.updateConnection({ status: 'error', error: `Failed to connect: ${message}` });
       throw err;
@@ -106,6 +114,12 @@ export class PencilMcpClient {
     }
     this.client = null;
     this.transport = null;
-    this.updateConnection({ status: 'disconnected', error: undefined, toolNames: undefined });
+    this.updateConnection({
+      status: 'disconnected',
+      error: undefined,
+      toolNames: undefined,
+      serverInfo: undefined,
+      instructions: undefined,
+    });
   }
 }

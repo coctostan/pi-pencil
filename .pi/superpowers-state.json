@@ -30,7 +30,7 @@
     "phase": "idle",
     "testFiles": [],
     "sourceFiles": [
-      "src/index.ts"
+      "src/mcp-client.ts"
     ],
     "redVerificationPending": false
   },

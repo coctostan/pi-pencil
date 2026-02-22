@@ -3,12 +3,12 @@
     "phases": {
       "brainstorm": "skipped",
       "plan": "complete",
-      "execute": "active",
+      "execute": "skipped",
       "verify": "skipped",
-      "review": "pending",
+      "review": "active",
       "finish": "pending"
     },
-    "currentPhase": "execute",
+    "currentPhase": "review",
     "artifacts": {
       "brainstorm": null,
       "plan": null,
@@ -29,7 +29,9 @@
   "tdd": {
     "phase": "idle",
     "testFiles": [],
-    "sourceFiles": [],
+    "sourceFiles": [
+      "src/index.ts"
+    ],
     "redVerificationPending": false
   },
   "debug": {
@@ -39,6 +41,6 @@
   },
   "verification": {
     "verified": true,
-    "verificationWaived": true
+    "verificationWaived": false
   }
 }

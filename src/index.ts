@@ -152,8 +152,13 @@ export default function pencilExtension(pi: ExtensionAPI) {
       return instructions;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      ctx.ui.setWidget('pencil', ['✏️ Pencil ✗']);
-      ctx.ui.notify(`Reconnect failed: ${message}`, 'error');
+      // If mode was active, deactivate to prevent dead tool calls
+      if (modeState.active) {
+        deactivatePencil(ctx);
+      } else {
+        ctx.ui.setWidget('pencil', undefined);
+      }
+      ctx.ui.notify(`Reconnect failed — Pencil mode deactivated: ${message}`, 'error');
       return undefined;
     }
   }

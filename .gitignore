@@ -3,3 +3,6 @@ dist/
 
 # KotaDB local storage
 .kotadb/
+
+# Pi session state
+.pi/

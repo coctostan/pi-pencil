@@ -137,6 +137,9 @@ export default function pencilExtension(pi: ExtensionAPI) {
 
     const binaryPath = getPencilBinaryPath();
     if (!binaryPath) {
+      if (modeState.active) {
+        deactivatePencil(ctx);
+      }
       ctx.ui.notify('Pencil not installed. Install from pencil.dev', 'error');
       return undefined;
     }
